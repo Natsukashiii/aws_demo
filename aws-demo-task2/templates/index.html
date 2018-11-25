@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        .iframe {
+            border: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Section Two</h2>
+<section class="second-section">
+    <div class="center-div">
+        <div class="upload-button">
+            <form id="form1" action="/upload" method="post" enctype="multipart/form-data" target="nm_iframe">
+                <input id="uploadInput" type="file" class="upload-input" name="upload_file"/>
+                <button id="uploadInputButton" type="submit" class="upload_label">Upload File</button>
+                {#                <input id="uploadInputButton" type="button" class="upload_label" value="Upload File"></input>#}
+                <div class="upload-state" id="uploadstate">
+                    <!--上传进度-->
+                </div>
+                <div class="upload-progress" id="uploadprogress">
+                    <!--上传进度-->
+                </div>
+            </form>
+        </div>
+        <button class="click-view" id="clickView">DownLoad Link</button>
+    </div>
+    <div class="show-state" id="previewBox">
+        <iframe class="iframe" id="id_iframe" name="nm_iframe"></iframe>
+        <!--这里展示下载地址啥的-->
+    </div>
+</section>
+<script type="text/javascript" src="{{ url_for('static',filename='jquery-3.3.1.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='socket.io.js') }}"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script type="text/javascript">
+    /*Section Two*/
+    namespace = '/getUploadProgress';
+    console.log(location.protocol + '//' + document.domain + ':' + location.port + namespace)
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+    socket.on('server_response', function (res) {
+        console.log(res.data)
+        if (res.data == '100%') {
+            $("#showState").text('uploading progress: ' + res.data);
+            // socket.close()
+            $.ajax({
+                type: "get",
+                url: "/complete",
+                success: function (response) {
+                    console.log("request completed")
+                }
+            });
+        }
+        $("#uploadprogress").text('uploading progress: ' + res.data);
+    })
+
+    $('#uploadInputButton').click(function () {
+        $('#uploadprogress').empty()
+        $('#id_iframe').empty()
+    })
+
+    /*获取下载链接*/
+    $('#clickView').click(function () {
+        $('#previewBox').empty()
+        {#$('#previewBox').empty().append('下载地址!');#}
+        $.ajax({
+            type: "post",
+            url: "/getUrl",
+            async: true,
+            contentType: "application/json",
+            success: function (data) {
+                console.log(data);
+                $('#previewBox').empty().append(data);
+            },
+            error: function (data) {
+            }
+        });
+    })
+
+
+</script>
+</body>
+</html>
