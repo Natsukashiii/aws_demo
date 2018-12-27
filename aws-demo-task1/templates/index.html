@@ -11,8 +11,6 @@
 </head>
 
 <body>
-
-
 <h2>Section One</h2>
 <section class="first-section">
     <button class="create-button" id="createButton">Create Snapshot</button>
@@ -26,15 +24,35 @@
 
 
 <script type="text/javascript" src="{{ url_for('static',filename='jquery-3.3.1.min.js') }}"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='socket.io.js') }}"></script>
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>#}
 <script type="text/javascript">
-
     /*Section One*/
+    namespace = '/getStatus';
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+    socket.on('server_response', function (res) {
+        console.log(res.data)
+        if (res.data.state == 'completed') {
+            $("#showState").text('state: ' + res.data.state + ', ' + 'progress: ' + res.data.progress);
+            // socket.close()
+            $.ajax({
+                type: "get",
+                url: "/complete",
+                success: function (response) {
+                    console.log("request completed")
+                }
+            });
+        }
+        $("#showState").text('state: ' + res.data.state + ', ' + 'progress: ' + res.data.progress);
+    })
     /*创建按钮*/
     $('#createButton').click(function () {
+        $('#showInfo').empty()
+        $('#showState').empty()
         $.ajax({
             type: "post",
-            url: "http://ec2-100-26-102-192.compute-1.amazonaws.com:5000/createSnapshot",
+            url: "/createSnapshot",
             async: true,
             contentType: "application/json",
             success: function (data) {
@@ -50,19 +68,9 @@
 
     /*获取快照状态和进度*/
     function getSnapshotStatus() {
-        console.log('getStatus')
-        namespace = '/getStatus';
-        console.log(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-        socket.on('server_response', function (res) {
-            console.log(res.data)
-            if (res.data.state == 'completed') {
-                $("#showState").text('state: ' + res.data.state + ', ' + 'progress: ' + res.data.progress);
-                socket.close()
-            }
-            $("#showState").text('state: ' + res.data.state + ', ' + 'progress: ' + res.data.progress);
-        });
+
     }
+
 
 </script>
 </body>
