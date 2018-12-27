@@ -151,7 +151,7 @@ def upload():
         file = request.files['upload_file']
         global file_name
         file_name = file.filename
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+        file.save(UPLOAD_FOLDER+"/"+file_name)
 
         global COMPLETE_UPLOAD
         COMPLETE_UPLOAD = False
